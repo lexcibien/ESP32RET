@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utility.h"
 #include "esp32_can.h"
 #include "can_manager.h"
-#ifndef CONFIG_IDF_TARGET_ESP32S3
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3)
 #include "BluetoothSerial.h"
 #endif
 
@@ -61,7 +61,7 @@ ELM327Emu::ELM327Emu()
  * Initialization of hardware and parameters
  */
 void ELM327Emu::setup() {
-#ifndef CONFIG_IDF_TARGET_ESP32S3
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3)
     serialBT.begin(settings.btName);
 #endif
 }
@@ -100,7 +100,7 @@ void ELM327Emu::loop() {
     int incoming;
     if (!mClient) //bluetooth
     {
-#ifndef CONFIG_IDF_TARGET_ESP32S3
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3)
         while (serialBT.available()) {
             incoming = serialBT.read();
             if (incoming != -1) { //and there is no reason it should be -1
@@ -164,7 +164,7 @@ void ELM327Emu::sendTxBuffer()
     }
     else //bluetooth then
     {
-#ifndef CONFIG_IDF_TARGET_ESP32S3
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3)
         serialBT.write(txBuffer.getBufferedBytes(), txBuffer.numAvailableBytes());
         //Serial.write(txBuffer.getBufferedBytes(), txBuffer.numAvailableBytes());
 #endif

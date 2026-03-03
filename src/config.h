@@ -74,6 +74,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
+// define whether addressable LEDs are available (compile-time)
+// boards without WS2812 strips should set this to 0 to avoid FastLED
+// initialization code that can fail with invalid pins.
+#if (A0_NUM_LEDS > 0) || (A5_NUM_LEDS > 0)
+#define HAVE_WS2812 1
+#else
+#define HAVE_WS2812 0
+#endif
+
+// if building for hardware that doesn't actually have any strip (e.g. the
+// super_mini_esp32c3 in this workspace) force HAVE_WS2812=0 so that
+// FastLED.addLeds() never gets instantiated and we avoid static asserts.
+#if CONFIG_IDF_TARGET_ESP32C3
+#undef HAVE_WS2812
+#define HAVE_WS2812 0
+#endif
+
 #define SW_EN     2
 #define SW_MODE0  26
 #define SW_MODE1  27

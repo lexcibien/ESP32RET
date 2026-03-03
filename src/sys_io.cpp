@@ -32,8 +32,11 @@ by stimmer
 
 #include "sys_io.h"
 #include <FastLED.h>
-
+#if HAVE_WS2812
 extern CRGB leds[A5_NUM_LEDS];
+#else
+extern CRGB leds[1];
+#endif
 
 bool useRawADC = false;
 
@@ -140,10 +143,12 @@ void toggleRXLED()
         counter = 0;
         SysSettings.rxToggle = !SysSettings.rxToggle;
         if (!SysSettings.fancyLED) setLED(SysSettings.LED_CANRX, SysSettings.rxToggle);
+#if HAVE_WS2812
         else
         {
           leds[SysSettings.LED_CANRX] = SysSettings.rxToggle?CRGB::Blue:CRGB::Black;
         };
+#endif
     }
 }
 
@@ -155,9 +160,11 @@ void toggleTXLED()
         counter = 0;
         SysSettings.txToggle = !SysSettings.txToggle;
         if (!SysSettings.fancyLED) setLED(SysSettings.LED_CANTX, SysSettings.txToggle);
+#if HAVE_WS2812
         else
         {
           leds[SysSettings.LED_CANRX] = SysSettings.rxToggle?CRGB::Green:CRGB::Black;
         };
+#endif
     }
 }

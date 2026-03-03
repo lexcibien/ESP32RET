@@ -5,10 +5,14 @@
 #include <ESPmDNS.h>
 #include <Update.h> 
 #include <WiFi.h>
+#if HAVE_WS2812
 #include <FastLED.h>
+#endif
 #include "ELM327_Emulator.h"
 
+#if HAVE_WS2812
 extern CRGB leds[A5_NUM_LEDS];
+#endif
 
 static IPAddress broadcastAddr(255,255,255,255);
 
@@ -23,17 +27,20 @@ void WiFiManager::setup()
     if (settings.wifiMode == 1) //connect to an AP
     {        
         Serial.println("Attempting to connect to a WiFi AP.");
+        WiFi.setTxPower(WIFI_POWER_8_5dBm);
         WiFi.mode(WIFI_STA);
         WiFi.setSleep(true); //sleeping could cause delays
         WiFi.begin((const char *)settings.SSID, (const char *)settings.WPA2Key);
 
         WiFiEventId_t eventID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) 
         {
+#if HAVE_WS2812
            if (SysSettings.fancyLED)
            {
                leds[SysSettings.LED_CONNECTION_STATUS] = CRGB::Red;
                FastLED.show();
            }
+#endif
            Serial.print("WiFi lost connection. Reason: ");
            Serial.println(info.wifi_sta_disconnected.reason);
            SysSettings.isWifiConnected = false;
@@ -51,11 +58,13 @@ void WiFiManager::setup()
         WiFi.mode(WIFI_AP);
         WiFi.setSleep(true);
         WiFi.softAP((const char *)settings.SSID, (const char *)settings.WPA2Key);
+#if HAVE_WS2812
         if (SysSettings.fancyLED)
         {
             leds[SysSettings.LED_CONNECTION_STATUS] = CRGB::Green;
             FastLED.show();
         }
+#endif
     }
 }
 
@@ -80,11 +89,13 @@ void WiFiManager::loop()
                 Serial.print("RSSI: ");
                 Serial.println(WiFi.RSSI());
                 needServerInit = true;
+#if HAVE_WS2812
                 if (SysSettings.fancyLED)
                 {
                     leds[SysSettings.LED_CONNECTION_STATUS] = CRGB::Green;
                     FastLED.show();
                 }
+#endif
             }
             if (settings.wifiMode == 2)
             {
@@ -114,11 +125,13 @@ void WiFiManager::loop()
                 ArduinoOTA
                    .onStart([]() {
                       String type;
+#if HAVE_WS2812
                       if (SysSettings.fancyLED)
                       {
                           leds[SysSettings.LED_CONNECTION_STATUS] = CRGB::Purple;
                           FastLED.show();
                       }
+#endif
                       if (ArduinoOTA.getCommand() == U_FLASH)
                          type = "sketch";
                       else // U_SPIFFS
@@ -163,11 +176,13 @@ void WiFiManager::loop()
                                 Serial.print("New client: ");
                                 Serial.print(i); Serial.print(' ');
                                 Serial.println(SysSettings.clientNodes[i].remoteIP());
+#if HAVE_WS2812
                                 if (SysSettings.fancyLED)
                                 {
                                     leds[SysSettings.LED_CONNECTION_STATUS] = CRGB::Blue;
                                     FastLED.show();
                                 }
+#endif
                             }
                         }
                     }
@@ -223,11 +238,13 @@ void WiFiManager::loop()
                         if (SysSettings.clientNodes[i]) 
                         {
                             SysSettings.clientNodes[i].stop();
+#if HAVE_WS2812
                             if (SysSettings.fancyLED)
                             {
                                 leds[SysSettings.LED_CONNECTION_STATUS] = CRGB::Green;
                                 FastLED.show();
                             }
+#endif
                         }
                     }
 
@@ -263,11 +280,13 @@ void WiFiManager::loop()
                     Serial.println("WiFi disconnected. Bummer!");
                     SysSettings.isWifiConnected = false;
                     SysSettings.isWifiActive = false;
+#if HAVE_WS2812
                     if (SysSettings.fancyLED)
                     {  
                         leds[SysSettings.LED_CONNECTION_STATUS] = CRGB::Red;
                         FastLED.show();
                     }
+#endif
                 }
             }
         }

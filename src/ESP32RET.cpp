@@ -71,7 +71,12 @@ LAWICELHandler lawicel;
 
 SerialConsole console;
 
+#if HAVE_WS2812
 CRGB leds[A5_NUM_LEDS]; //A5 has the largest # of LEDs so use that one even for A0 or EVTV
+#else
+CRGB leds[1];
+#endif
+
 
 CAN_COMMON *canBuses[NUM_BUSES];
 
@@ -108,7 +113,7 @@ void loadSettings()
         SysSettings.LED_CANRX = 255;
         SysSettings.LED_LOGGING = 255;
         SysSettings.LED_CONNECTION_STATUS = 0;
-        SysSettings.fancyLED = true;
+        SysSettings.fancyLED = false;
         SysSettings.logToggle = false;
         SysSettings.txToggle = true;
         SysSettings.rxToggle = true;
@@ -122,16 +127,22 @@ void loadSettings()
         strcpy(deviceName, MACC_NAME);
         strcpy(otaHost, "macchina.cc");
         strcpy(otaFilename, "/a0/files/a0ret.bin");
+#if !CONFIG_IDF_TARGET_ESP32C3
         pinMode(13, OUTPUT);
         digitalWrite(13, LOW);
+#endif
         delay(100);
+#if HAVE_WS2812
         FastLED.addLeds<LED_TYPE, A0_LED_PIN, COLOR_ORDER>(leds, A0_NUM_LEDS).setCorrection( TypicalLEDStrip );
         FastLED.setBrightness(  BRIGHTNESS );
         leds[0] = CRGB::Red;
         FastLED.show();
+#endif
+#if !CONFIG_IDF_TARGET_ESP32C3
         pinMode(21, OUTPUT);
         digitalWrite(21, LOW);
-        CAN0.setCANPins(GPIO_NUM_4, GPIO_NUM_5);
+#endif
+        CAN0.setCANPins(GPIO_NUM_1, GPIO_NUM_0);
     }
 
     if (settings.systemType == 1)
@@ -189,6 +200,7 @@ void loadSettings()
         SysSettings.isWifiConnected = false;
 
 
+#if HAVE_WS2812
         FastLED.addLeds<LED_TYPE, A5_LED_PIN, COLOR_ORDER>(leds, A5_NUM_LEDS).setCorrection( TypicalLEDStrip );
         FastLED.setBrightness(  BRIGHTNESS );
         //With the board facing up and looking at the USB end the LEDs are 0 1 2 (USB) 3
@@ -198,6 +210,7 @@ void loadSettings()
         //leds[2] = CRGB::Green;
         leds[3] = CRGB::Red;
         FastLED.show();
+#endif
 
         strcpy(deviceName, MACC_NAME);
         strcpy(otaHost, "macchina.cc");
@@ -279,7 +292,7 @@ void loadSettings()
 
 void setup()
 {
-#ifdef CONFIG_IDF_TARGET_ESP32S3
+#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32C3
     //for the ESP32S3 it will block if nothing is connected to USB and that can slow down the program
     //if nothing is connected. But, you can't set 0 or writing rapidly to USB will lose data. It needs
     //some sort of timeout but I'm not sure exactly how much is needed or if there is a better way
